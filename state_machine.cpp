@@ -33,15 +33,16 @@ void state_machine::loop(void){
                     ti.reset();
                     //m_loop->switch_to_GPA_ident();
                     // m_loop->switch_to_cntrl_vel();
-                    m_loop->switch_to_cntrl_pos();
-                    CS = CONTROL;
+                    // m_loop->switch_to_cntrl_pos();
+                    m_loop->switch_to_find_index();
+                    CS = REFERENCE;
                     }
                 break;
             case REFERENCE:
                 if(m_io->motors_are_referenced())
                     {
                     ti.reset();
-                    m_loop->switch_to_cntrl_vel();
+                    m_loop->switch_to_cntrl_pos();
                     CS = STATE_GPA;
                     }
                 break;

@@ -34,6 +34,9 @@ void realtime_thread::loop(void){
     uint8_t k = 0;
     float kv = 0;
     float kp = .02;
+    float amp = 50;
+    float omega = 2 * 3.1415 * 20;
+
     while(1)
         {
         ThisThread::flags_wait_any(threadFlag);
@@ -42,6 +45,10 @@ void realtime_thread::loop(void){
         // -------------------------------------------------------------
         // at very beginning: move system slowly to find the zero pulse
         float ti_loc = ti.read();
+        m_data->cntrl_xy_des[0] = amp * cosf(omega * ti_loc);
+        m_data->cntrl_xy_des[1] = amp * sinf(omega * ti_loc);
+        m_mk->X2P(m_data->cntrl_xy_des, m_data->cntrl_phi_des);
+
         switch(controller_state)
             {
             case CNTRL_IDLE:
@@ -49,8 +56,8 @@ void realtime_thread::loop(void){
                 break;
             case FIND_INDEX:
                 // Aufgabe 8.x
-                i_des0 = 0;
-                i_des1 = 0;
+                i_des0 = v_cntrl_0(1 - m_data->sens_Vphi[0]);
+                i_des1 = v_cntrl_1(1 - m_data->sens_Vphi[1]);
                 m_io->enable_motors(true);      // enable motors, still read the bigButton to enable
                 break;
 
@@ -68,22 +75,26 @@ void realtime_thread::loop(void){
 
             case CNTRL_VEL:
                 v_des = myDataLogger.get_set_value(ti_loc);
-                i_des0 = v_cntrl_0(0 - m_data->sens_Vphi[0]);
-                i_des1 = v_cntrl_1(v_des - m_data->sens_Vphi[1]);
+                i_des0 = v_cntrl_0(v_des - m_data->sens_Vphi[0]);
+                i_des1 = v_cntrl_1(10 - m_data->sens_Vphi[1]);
                 m_io->enable_motors(true);      // enable motors
-                myDataLogger.write_to_log(ti_loc, v_des, m_data->sens_Vphi[1], i_des1);
+                myDataLogger.write_to_log(ti_loc, v_des, m_data->sens_Vphi[0], i_des0);
                 break;
 
             case CNTRL_POS:
                 m_io->enable_motors(true);
 
                 // Winkelregler
-                phi_des = myDataLogger.get_set_value(ti_loc);
+                // phi_des = myDataLogger.get_set_value(ti_loc);
+                phi_des = m_data->cntrl_phi_des[0];
                 v_des = kv * phi_des - m_data->sens_phi[0] + ableit_vorst0(phi_des);
                 i_des0 = v_cntrl_0(v_des - m_data->sens_Vphi[0]);
                 myDataLogger.write_to_log(ti_loc, phi_des, m_data->sens_phi[0], i_des0);
 
-                i_des1 = v_cntrl_1(0 - m_data->sens_Vphi[1]);
+                phi_des = m_data->cntrl_phi_des[1];
+                v_des = kv * phi_des - m_data->sens_phi[1] + ableit_vorst1(phi_des);
+                i_des1 = v_cntrl_1(v_des - m_data->sens_Vphi[1]);
+
                 break;
             // ------------------------ do the control first
             default:

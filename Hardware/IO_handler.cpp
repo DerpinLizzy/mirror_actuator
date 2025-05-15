@@ -23,8 +23,8 @@ IO_handler::~IO_handler() {}
 
 void IO_handler::read_encoders_calc_speed(void)
 {
-    m_data->sens_phi[0] = uw1(counter1);
-    m_data->sens_phi[1] = uw2(counter2);
+    m_data->sens_phi[0] = uw1(counter1 - index1.getPositionAtIndexPulse() - 2678);
+    m_data->sens_phi[1] = uw2(counter2 - index2.getPositionAtIndexPulse() - 1590 + 15);
     m_data->sens_Vphi[0] = di1(m_data->sens_phi[0]);
     m_data->sens_Vphi[1] = di2(m_data->sens_phi[1]);
 }
