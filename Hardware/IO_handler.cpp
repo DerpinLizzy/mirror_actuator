@@ -31,7 +31,8 @@ void IO_handler::read_encoders_calc_speed(void)
 
 void IO_handler::enable_motors(bool enable)
 {
-    i_enable = big_button && enable;    
+    // i_enable = big_button && enable;    
+    i_enable = enable;    
 }
 void IO_handler::force_enable_motors(bool enable)
 {

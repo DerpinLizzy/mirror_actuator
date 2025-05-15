@@ -15,9 +15,11 @@ realtime_thread::realtime_thread(Data_Xchange *data,IO_handler *io, Mirror_Kinem
     ti.reset();
     ti.start();
     controller_state = CNTRL_IDLE;  // the local state machine
-    v_cntrl_0 = PID_Cntrl(0.0266,5.322,0,0,Ts,-0.8,0.8); // zunaechst nur PI-Regler, 1 
-    v_cntrl_1 = PID_Cntrl(0.0266,5.322,0,0,Ts,-0.8,0.8); // zunaechst nur PI-Regler, 1 
-    //v_cntrl_0 = PID_Cntrl(0.022, 2.83, 3.49e-05,0.000556,Ts,-.8,.8); PID Regler
+    // v_cntrl_0 = PID_Cntrl(0.0209,4.18,0,0,Ts,-0.8,0.8); // zunaechst nur PI-Regler, 1 
+    // v_cntrl_1 = PID_Cntrl(0.0209,4.18,0,0,Ts,-0.8,0.8); // zunaechst nur PI-Regler, 1 
+    v_cntrl_0 = PID_Cntrl(0.0121, 1.66, 1.78e-5, 0.00025, Ts, -0.8, 0.8); // PID Regler vollständig
+    v_cntrl_1 = PID_Cntrl(0.0121, 1.66, 1.78e-5, 0.00025, Ts, -0.8, 0.8); // PID Regler vollständig
+
     }
 // decontructor for controller loop
 realtime_thread::~realtime_thread() {}
@@ -49,24 +51,32 @@ void realtime_thread::loop(void){
                 break;
             case GPA_IDENT_PLANT:
                 m_io->enable_motors(true);      // enable motors, still read the bigButton to enable
-                // AUFGABE 5.2, 5.3
-                // i_des0 = myGPA.update(i_des0, m_data->sens_Vphi[0]); // Variante 1
-                //i_des0 = 0.02*(100+myGPA.update(i_des0, m_data->sens_Vphi[0]) - m_data->sens_Vphi[0]); // Variante 2
-                i_des0 = 0.02*(100 - m_data->sens_Vphi[0]) + myGPA.update(i_des0, m_data->sens_Vphi[0]); // Variante 3
+                // i_des0 = myGPA.update(i_des0, m_data->sens_Vphi[0]); // open loop
+                // i_des0 = 0.02*(80 + myGPA.update( i_des0, m_data->sens_Vphi[1]) - m_data->sens_Vphi[1]); // closed loop
+                // i_des0 = 0.02*(80 - m_data->sens_Vphi[1]) + myGPA.update(i_des0, m_data->sens_Vphi[1]); // Variante 3
+                i_des0 = v_cntrl_0(v_des - m_data->sens_Vphi[0]);
+                v_des = myGPA.update(v_des, m_data->sens_phi[0]);
+
                 i_des1 = 0;
                 break;
             case CNTRL_VEL:
-                // AUFGABE 6.3, 6.4
                 v_des = myDataLogger.get_set_value(ti_loc);
-                i_des0 = v_cntrl_0(v_des - m_data->sens_Vphi[0]);
-                i_des1 = v_cntrl_1(10 - m_data->sens_Vphi[1]);
+                i_des0 = v_cntrl_0(0 - m_data->sens_Vphi[0]);
+                i_des1 = v_cntrl_1(v_des - m_data->sens_Vphi[1]);
                 m_io->enable_motors(true);      // enable motors
-                myDataLogger.write_to_log(ti_loc, v_des, m_data->sens_Vphi[0], i_des0);
+                myDataLogger.write_to_log(ti_loc, v_des, m_data->sens_Vphi[1], i_des1);
                 break;
             case CNTRL_POS:
                 // AUFGABE 7.x
                 m_io->enable_motors(true);      // enable motors
-            // Winkelregler 
+
+                // Winkelregler
+                phi_des = myDataLogger.get_set_value(ti_loc);
+                v_des = kv * phi_des - m_data->sens_phi[0];
+                i_des0 = v_cntrl_0(v_des - m_data->sens_Vphi[0]);
+                myDataLogger.write_to_log(ti_loc, phi_des, m_data->sens_phi[0], i_des0);
+
+                // i_des1 = v_cntrl_1(v_des - m_data->sens_Vphi[1]);
                 break;
             // ------------------------ do the control first
             default:

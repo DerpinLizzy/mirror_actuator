@@ -17,7 +17,7 @@ float Ts = 0.0002f;                    // sampling time
 void reset_data(Data_Xchange *);
 //----------------------------------------- global variables (uhh!) ---------------------------
 //init values:    (f0,   f1, nbPts, A0, A1, Ts)
-GPA          myGPA(5 , 1000,    30,1,1, Ts);
+GPA          myGPA(5, 1000, 30, 1, 1, Ts);
 DataLogger   myDataLogger(1);
 
 //******************************************************************************

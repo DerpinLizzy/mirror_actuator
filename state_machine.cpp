@@ -32,7 +32,8 @@ void state_machine::loop(void){
                     {
                     ti.reset();
                     //m_loop->switch_to_GPA_ident();
-                    m_loop->switch_to_cntrl_vel();
+                    // m_loop->switch_to_cntrl_vel();
+                    m_loop->switch_to_cntrl_pos();
                     CS = CONTROL;
                     }
                 break;
