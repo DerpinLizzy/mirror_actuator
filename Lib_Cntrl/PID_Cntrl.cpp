@@ -16,7 +16,7 @@ PID_Cntrl::PID_Cntrl(float kp, float ki, float kd, float tau_f, float Ts, float 
     this->Ts = Ts;
     this->uMin = uMin;
     this->uMax = uMax;
-    Dpart = Ipart =e_old = 0;
+    Dpart = Ipart = e_old = 0;
     reset(0);
 }
 
@@ -35,7 +35,7 @@ float PID_Cntrl::update(float e)
     // Integrate and Saturete 
     Ipart += ki * Ts/2 * (e + e_old);
     Ipart = saturate(Ipart);
-    Dpart = (2 * tau_f - Ts)/(2 * tau_f+ Ts) *  Dpart + 2 * kd/(2 * tau_f + Ts) * (e - e_old);
+    Dpart = (2 * tau_f - Ts)/(2 * tau_f + Ts) * Dpart + 2 * kd/(2 * tau_f + Ts) * (e - e_old);
     e_old = e;
     float ret_val = saturate(kp*e + Ipart + Dpart);
     return ret_val;   // saturate and return 

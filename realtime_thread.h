@@ -45,6 +45,8 @@ private:
     void find_index(void);
     PID_Cntrl v_cntrl_0, v_cntrl_1;
     IIR_filter ableit_vorst;
+    IIR_filter ableit_vorst0;
+    IIR_filter ableit_vorst1;
     Data_Xchange *m_data;
     IO_handler *m_io;
     Mirror_Kinematic *m_mk;
